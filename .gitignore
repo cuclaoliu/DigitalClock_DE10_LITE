@@ -44,3 +44,6 @@ DigitalClock3.done
 DigitalClock3.fit.smsg
 DigitalClock3.pin
 DigitalClock3.pof
+devkits/*
+DigitalClock*/*
+Flow Messages are not contained in a QMSG file.smsg
