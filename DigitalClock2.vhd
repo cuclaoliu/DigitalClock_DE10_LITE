@@ -69,6 +69,7 @@ ARCHITECTURE str OF DigitalClock2 IS
 	SIGNAL cnt8_cout					: STD_LOGIC;
 	SIGNAL cnt8q					: BCD;
 
+	constant	FREQUENCY	:		BCD			:= 8;
 	SIGNAL hour_adj, mnt_adj, sec_adj, stop_time	: STD_LOGIC;
 	SIGNAL disp_hour, disp_minute, disp_second	: STD_LOGIC;
 BEGIN
@@ -76,7 +77,7 @@ BEGIN
 	--clk_4Hz <= clk;
 	-- for real hardware
 	freqdiv_inst : freq_div
-		GENERIC MAP(50E6, 8)
+		GENERIC MAP(50E6, FREQUENCY)
 		PORT MAP(
 			clk_in => clk,
 			clk_out => clk_8Hz);
@@ -87,7 +88,7 @@ BEGIN
 			reset => cnt8_cout,
 			en => '1', 
 			q => cnt8q);
-	cnt8_cout <= '1' WHEN cnt8q=8-1 ELSE '0';
+	cnt8_cout <= '1' WHEN cnt8q=FREQUENCY-1 ELSE '0';
 
 	cnt_second	: bcdcnt_2symbol
 		GENERIC MAP(60)
@@ -98,7 +99,7 @@ BEGIN
 			cnth => sec_h,
 			cntl => sec_l);
 			
-	second_en <= adj WHEN sec_adj='1' ELSE '0' WHEN stop_time='1' ELSE cnt8_cout;	
+	second_en <= NOT adj WHEN sec_adj='1' ELSE '0' WHEN stop_time='1' ELSE cnt8_cout;	
 
 	cnt_minute	: bcdcnt_2symbol
 		GENERIC MAP(60)
@@ -109,7 +110,7 @@ BEGIN
 			cnth => mnt_h,
 			cntl => mnt_l);
 			
-	minute_en <= adj WHEN mnt_adj='1' ELSE '0' WHEN stop_time='1' ELSE cnt8_cout AND s_cout;
+	minute_en <= NOT adj WHEN mnt_adj='1' ELSE '0' WHEN stop_time='1' ELSE cnt8_cout AND s_cout;
 
 	cnt_hour	: bcdcnt_2symbol
 		GENERIC MAP(24)
@@ -119,7 +120,7 @@ BEGIN
 			cnth => hour_h,
 			cntl => hour_l);
 			
-	hour_en <= adj WHEN hour_adj='1' ELSE '0' WHEN stop_time='1' ELSE minute_en AND m_cout;				
+	hour_en <= NOT adj WHEN hour_adj='1' ELSE '0' WHEN stop_time='1' ELSE minute_en AND m_cout;				
 
 	hourh_47	: bcdto7segp 
 		PORT MAP(
@@ -153,8 +154,9 @@ BEGIN
 			leds => ledsec_l);
 	ctrl_inst : ctrl2
 		port map(
-			clk,
-			set,
+			
+			set,--clk,
+			'0',
 			hour_adj,
 			mnt_adj,
 			sec_adj,	

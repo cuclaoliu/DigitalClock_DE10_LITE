@@ -50,18 +50,6 @@ set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
 
-#拨动开关
-
-#按键
-
-#50MHz输入时钟
-
-#绿灯
-
-#红灯
-
-#8个7段数码显示管，特别注意[0]对应A，[1]对应B，...，[6]对应G，等等
-
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
 set_global_assignment -name USE_CONFIGURATION_DEVICE OFF
 set_global_assignment -name STATE_MACHINE_PROCESSING "ONE-HOT"
