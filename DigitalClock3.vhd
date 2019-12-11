@@ -7,6 +7,7 @@ ENTITY DigitalClock3 IS
 	clk			: IN STD_LOGIC;
 	set			: IN STD_LOGIC;
 	adj			: IN STD_LOGIC;
+	alarm_led	: OUT STD_LOGIC;
 	ledhour_h	: OUT SSD;
 	ledhour_l	: OUT SSD;
 	ledmnt_h	: OUT SSD;
@@ -80,7 +81,7 @@ ARCHITECTURE str OF DigitalClock3 IS
     SIGNAL time_nalarm : STD_LOGIC;
 BEGIN
 	-- for simulation
-	--clk_4Hz <= clk;
+	--clk_8Hz <= clk;
 	-- for real hardware
 	freqdiv_inst : freq_div
 		GENERIC MAP(50E6, 8)
@@ -105,7 +106,7 @@ BEGIN
 			cnth => sec_h,
 			cntl => sec_l);
 			
-	second_en <= adj WHEN time_nalarm='1' AND sec_adj='1' ELSE '0' WHEN stop_time='1' ELSE cnt8_cout;	
+	second_en <= NOT adj WHEN time_nalarm='1' AND sec_adj='1' ELSE '0' WHEN stop_time='1' ELSE cnt8_cout;	
 
 	cnt_minute	: bcdcnt_2symbol
 		GENERIC MAP(60)
@@ -116,7 +117,7 @@ BEGIN
 			cnth => time_mnt_h,
 			cntl => time_mnt_l);
 			
-	minute_en <= adj WHEN time_nalarm='1' AND mnt_adj='1' ELSE '0' WHEN stop_time='1' ELSE cnt8_cout AND s_cout;
+	minute_en <= NOT adj WHEN time_nalarm='1' AND mnt_adj='1' ELSE '0' WHEN stop_time='1' ELSE cnt8_cout AND s_cout;
 
 	cnt_hour	: bcdcnt_2symbol
 		GENERIC MAP(24)
@@ -126,7 +127,7 @@ BEGIN
 			cnth => time_hour_h,
 			cntl => time_hour_l);
 			
-	hour_en <= adj WHEN time_nalarm='1' AND hour_adj='1' ELSE '0' WHEN stop_time='1' ELSE minute_en AND m_cout;				
+	hour_en <= NOT adj WHEN time_nalarm='1' AND hour_adj='1' ELSE '0' WHEN stop_time='1' ELSE minute_en AND m_cout;				
 
 	alarm_minute	: bcdcnt_2symbol
 		GENERIC MAP(60)
@@ -135,7 +136,7 @@ BEGIN
 			en => alarm_minute_en,
 			cnth => alarm_mnt_h,
             cntl => alarm_mnt_l);
-    alarm_minute_en <= adj WHEN time_nalarm='0' AND mnt_adj='1' ELSE '0';
+    alarm_minute_en <= NOT adj WHEN time_nalarm='0' AND mnt_adj='1' ELSE '0';
         
 	alarm_hour	: bcdcnt_2symbol
     GENERIC MAP(24)
@@ -144,7 +145,7 @@ BEGIN
         en => alarm_hour_en, 
         cnth => alarm_hour_h,
         cntl => alarm_hour_l);
-    alarm_hour_en <= adj WHEN time_nalarm='0' AND hour_adj='1' ELSE '0';
+    alarm_hour_en <= NOT adj WHEN time_nalarm='0' AND hour_adj='1' ELSE '0';
         
     hourh_47	: bcdto7segp 
 		PORT MAP(
@@ -170,7 +171,10 @@ BEGIN
 			en => disp_minute,
             leds => ledmnt_l);
     mnt_h <= time_mnt_h WHEN time_nalarm='1' ELSE alarm_mnt_h;
-    mnt_l <= time_mnt_l WHEN time_nalarm='1' ELSE alarm_mnt_l;
+	mnt_l <= time_mnt_l WHEN time_nalarm='1' ELSE alarm_mnt_l;
+	
+	alarm_led <= '1' WHEN time_mnt_h = alarm_mnt_h AND time_mnt_l = alarm_mnt_l AND
+				time_hour_h = alarm_hour_h AND time_hour_l = alarm_hour_l ELSE '0';
 
 	secondh_47	: bcdto7segp 
 		PORT MAP(
@@ -184,7 +188,7 @@ BEGIN
 			leds => ledsec_l);
 	ctrl_inst : ctrl3
 		port map(
-			clk,
+			clk_8Hz,
 			set,
 			hour_adj,
 			mnt_adj,
